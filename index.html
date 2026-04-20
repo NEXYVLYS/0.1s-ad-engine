@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>0.1s Ad Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0c0c0c; min-height: 100vh; font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace; padding-bottom: 50px; }
+        #header { background: linear-gradient(180deg, #1a1a1a 0%, #0c0c0c 100%); padding: 18px 25px; border-bottom: 2px solid #00ff88; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand h1 { color: #00ff88; font-weight: 400; letter-spacing: 5px; font-size: 22px; text-shadow: 0 0 20px rgba(0,255,136,0.5); }
+        .proxy-badge { background: #1a3a2a; color: #00ff88; padding: 5px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #00ff88; display: flex; align-items: center; gap: 6px; }
+        .proxy-badge .dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .stats-grid { display: flex; gap: 35px; }
+        .stat-box { text-align: right; }
+        .stat-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; }
+        .stat-number { color: #00ff88; font-size: 32px; font-weight: 600; line-height: 1.2; }
+        #ad-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 10px; padding: 20px; max-width: 1600px; margin: 0 auto; }
+        .ad-unit { background: #151515; border-radius: 6px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.6); border: 1px solid #2a2a2a; position: relative; }
+        .ad-unit iframe { display: block; border: none; background: #000; }
+        .ad-tag { position: absolute; bottom: 3px; right: 3px; background: rgba(0,0,0,0.8); color: #00ff88; font-size: 9px; padding: 2px 6px; border-radius: 3px; border-left: 2px solid #00ff88; pointer-events: none; z-index: 5; }
+        #console { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0a0a; border-top: 1px solid #2a2a2a; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; z-index: 1000; }
+        #log-stream { color: #aaa; font-family: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+        #controls { display: flex; gap: 10px; }
+        .btn { background: #1a1a1a; color: #00ff88; border: 1px solid #00ff88; padding: 6px 15px; border-radius: 4px; font-family: inherit; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: #00ff88; color: #000; }
+        #extra-container { position: absolute; width: 0; height: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div class="brand">
+        <h1>0.1s</h1>
+        <div class="proxy-badge">
+            <span class="dot"></span>
+            <span>BRIGHT DATA · RESIDENTIAL</span>
+        </div>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-box"><div class="stat-label">IMPRESSIONS</div><div class="stat-number" id="imp-val">0</div></div>
+        <div class="stat-box"><div class="stat-label">CLICKS</div><div class="stat-number" id="click-val">0</div></div>
+        <div class="stat-box"><div class="stat-label">ROTATIONS</div><div class="stat-number" id="rot-val">0</div></div>
+        <div class="stat-box"><div class="stat-label">GEO</div><div class="stat-number" id="geo-val" style="font-size: 16px;">--</div></div>
+    </div>
+</div>
+
+<div id="ad-grid"></div>
+<div id="extra-container"><div id="container-f9a8370772d0f1c2eef95fc947e949e7"></div></div>
+
+<div id="console">
+    <div id="log-stream">[0.1s] Initializing...</div>
+    <div id="controls">
+        <button class="btn" onclick="window._0_1s.forceRotate()">⟳ ROTATE</button>
+        <button class="btn" onclick="window._0_1s.forceClicks()">👆 CLICK</button>
+        <button class="btn" onclick="window._0_1s.forcePop()">🔗 POP</button>
+    </div>
+</div>
+
+<script>
+(function(){
+    "use strict";
+    const BRIGHT_DATA = { username: 'brd-customer-hl_66343536-zone-monitor_residential', password: 'qtp71woknf8q', proxyHost: 'brd.superproxy.io', proxyPort: '22225', targetCountries: ['us','gb','ca','au','de','ch','no','se','dk'] };
+    const CONFIG = { ROTATION_INTERVAL: 120, CLICK_INTERVAL: 800, EXTRA_INTERVAL: 40000, SMARTLINK_INTERVAL: 25000, GEO_CHECK_INTERVAL: 60000 };
+    const AD_UNITS = [
+        { name: '160x300', w: 160, h: 300, key: 'a3f917d9f9c2ef8e0631537c92018234', src: 'https://www.highperformanceformat.com/a3f917d9f9c2ef8e0631537c92018234/invoke.js' },
+        { name: '160x600', w: 160, h: 600, key: '451b27abcf34089c2a5474715462a022', src: 'https://www.highperformanceformat.com/451b27abcf34089c2a5474715462a022/invoke.js' },
+        { name: '300x250', w: 300, h: 250, key: '9e9115906fab18cc6ff27c8deef2d74d', src: 'https://www.highperformanceformat.com/9e9115906fab18cc6ff27c8deef2d74d/invoke.js' },
+        { name: '320x50', w: 320, h: 50, key: '8822fec6c4e4614f8547363b6e0fa586', src: 'https://www.highperformanceformat.com/8822fec6c4e4614f8547363b6e0fa586/invoke.js' },
+        { name: '468x60', w: 468, h: 60, key: 'e5b8832abc8f68505fbc29bf5f01fd92', src: 'https://www.highperformanceformat.com/e5b8832abc8f68505fbc29bf5f01fd92/invoke.js' },
+        { name: '728x90', w: 728, h: 90, key: '5a6fe7b4d896038d5a68a9ea23a77dc6', src: 'https://www.highperformanceformat.com/5a6fe7b4d896038d5a68a9ea23a77dc6/invoke.js' }
+    ];
+    const EXTRA = {
+        native: { container: 'container-f9a8370772d0f1c2eef95fc947e949e7', src: 'https://pl29188291.profitablecpmratenetwork.com/f9a8370772d0f1c2eef95fc947e949e7/invoke.js' },
+        pop: { src: 'https://pl29188288.profitablecpmratenetwork.com/6b/f7/93/6bf7939d1f1e27a2e22c881418718040.js' },
+        social: { src: 'https://pl29188290.profitablecpmratenetwork.com/65/85/2a/65852a316e4c3f6632b3d6f0c450dae9.js' },
+        smartlink: { url: 'https://www.profitablecpmratenetwork.com/xq3cf1et?key=c881e8976651c8b9895d1ebae0b2c7d2' }
+    };
+    let activeAds = [], impressions = 0, clicks = 0, rotations = 0, currentGeo = 'Detecting...';
+    const grid = document.getElementById('ad-grid'), impEl = document.getElementById('imp-val'), clickEl = document.getElementById('click-val'), rotEl = document.getElementById('rot-val'), geoEl = document.getElementById('geo-val'), logEl = document.getElementById('log-stream');
+    function log(msg) { logEl.textContent = `[0.1s] ${msg}`; console.log(`[0.1s] ${msg}`); }
+    function updateUI() { impEl.textContent = impressions.toLocaleString(); clickEl.textContent = clicks.toLocaleString(); rotEl.textContent = rotations.toLocaleString(); geoEl.textContent = currentGeo; }
+    async function detectGeo() { try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); const g = await fetch(`https://ipapi.co/${d.ip}/json/`); const j = await g.json(); currentGeo = `${j.country_code} · ${j.city || j.region || 'Unknown'}`; log(`Geo: ${currentGeo} (${d.ip})`); updateUI(); } catch(e) { currentGeo = 'US/EU (Proxy)'; updateUI(); log('Geo: Routed via Bright Data'); } }
+    function createAdFrame(u) {
+        const w = document.createElement('div'); w.className = 'ad-unit'; w.style.width = u.w + 'px'; w.style.height = u.h + 'px';
+        const t = document.createElement('div'); t.className = 'ad-tag'; t.textContent = u.name; w.appendChild(t);
+        const f = document.createElement('iframe'); f.width = u.w; f.height = u.h; f.scrolling = 'no'; f.frameBorder = '0'; f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation');
+        w.appendChild(f); const d = f.contentWindow.document; d.open();
+        d.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:0;background:#000;overflow:hidden;}</style><script>atOptions={'key':'${u.key}','format':'iframe','height':${u.h},'width':${u.w},'params':{}};window.parent.postMessage({type:'0.1s_IMP',unit:'${u.name}'},'*');document.addEventListener('click',function(e){window.parent.postMessage({type:'0.1s_CLICK',unit:'${u.name}'},'*');},true);</script><script src="${u.src}"></script></head><body></body></html>`);
+        d.close(); return { wrapper: w, iframe: f };
+    }
+    function renderAll() { grid.innerHTML = ''; const n = []; AD_UNITS.forEach(u => { const { wrapper, iframe } = createAdFrame(u); grid.appendChild(wrapper); n.push({ unit: u, wrapper, iframe }); }); activeAds = n; impressions += AD_UNITS.length; updateUI(); log(`Rendered ${AD_UNITS.length} units`); }
+    function rotateAll() { activeAds.forEach(a => a.wrapper.remove()); const n = []; AD_UNITS.forEach(u => { const { wrapper, iframe } = createAdFrame(u); grid.appendChild(wrapper); n.push({ unit: u, wrapper, iframe }); }); activeAds = n; impressions += AD_UNITS.length; rotations++; updateUI(); if (rotations % 50 === 0) log(`Rotation #${rotations} · Total impressions: ${impressions}`); }
+    function clickAll() { let t = 0; activeAds.forEach(a => { try { if (a.iframe.contentWindow) a.iframe.contentWindow.postMessage({type:'0.1s_FORCE_CLICK'}, '*'); const r = a.iframe.getBoundingClientRect(); const e = new MouseEvent('click', { view: window, bubbles: true, cancelable: true, clientX: r.left + a.unit.w/2, clientY: r.top + a.unit.h/2 }); a.iframe.dispatchEvent(e); a.iframe.click(); t++; } catch(e) {} }); if (t > 0) { clicks += t; updateUI(); if (clicks % 100 === 0) log(`Click milestone: ${clicks} total`); } }
+    function injectExtra() { document.querySelectorAll('script[data-0.1s]').forEach(s => s.remove()); const c = document.getElementById('extra-container'); let n = document.getElementById(EXTRA.native.container); if (!n) { n = document.createElement('div'); n.id = EXTRA.native.container; c.appendChild(n); } const s1 = document.createElement('script'); s1.setAttribute('data-0.1s', 'native'); s1.async = true; s1.src = EXTRA.native.src; const s2 = document.createElement('script'); s2.setAttribute('data-0.1s', 'pop'); s2.src = EXTRA.pop.src; const s3 = document.createElement('script'); s3.setAttribute('data-0.1s', 'social'); s3.src = EXTRA.social.src; document.head.appendChild(s1); document.body.appendChild(s2); document.body.appendChild(s3); log('Extra scripts injected'); }
+    function openSmartlink() { const w = window.open(EXTRA.smartlink.url, '_blank', 'width=1,height=1,left=9999,top=9999'); if (w) { w.blur(); window.focus(); } const f = document.createElement('iframe'); f.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;'; f.sandbox = 'allow-scripts allow-same-origin allow-popups'; f.src = EXTRA.smartlink.url; document.body.appendChild(f); setTimeout(() => f.remove(), 5000); log('Smartlink deployed'); }
+    function keepAlive() { window.scrollBy(0, 1); window.scrollBy(0, -1); }
+    window.addEventListener('message', (e) => { if (e.data && e.data.type === '0.1s_CLICK') { clicks++; updateUI(); } });
+    window.addEventListener('beforeunload', (e) => { e.preventDefault(); rotateAll(); clickAll(); });
+    window._0_1s = { forceRotate: rotateAll, forceClicks: clickAll, forcePop: () => { injectExtra(); openSmartlink(); } };
+    function init() { log('0.1s Ad Engine starting with Bright Data...'); log(`Proxy: ${BRIGHT_DATA.username}`); renderAll(); detectGeo(); setInterval(rotateAll, CONFIG.ROTATION_INTERVAL); setInterval(clickAll, CONFIG.CLICK_INTERVAL); setInterval(injectExtra, CONFIG.EXTRA_INTERVAL); setInterval(openSmartlink, CONFIG.SMARTLINK_INTERVAL); setInterval(keepAlive, 8000); setInterval(detectGeo, CONFIG.GEO_CHECK_INTERVAL); setTimeout(injectExtra, 500); setTimeout(openSmartlink, 1000); setTimeout(clickAll, 800); log('Engine live · High CPM geo-targeting active'); }
+    init();
+})();
+</script>
+</body>
+</html>
