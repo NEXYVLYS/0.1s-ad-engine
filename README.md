@@ -1,2 +1,5 @@
-# 0.1s-ad-engine
-engine
+# 0.1s Ad Engine
+
+Bright Data integrated ad engine for high CPM traffic generation.
+
+## Credentials
