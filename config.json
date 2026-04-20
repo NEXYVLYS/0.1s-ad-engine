@@ -1,0 +1,22 @@
+{
+  "bright_data": {
+    "username": "brd-customer-hl_66343536-zone-monitor_residential",
+    "password": "qtp71woknf8q",
+    "host": "brd.superproxy.io",
+    "port": "22225",
+    "zone": "monitor_residential"
+  },
+  "target_countries": ["us", "gb", "ca", "au", "de", "ch", "no", "se", "dk"],
+  "engine": {
+    "rotation_interval_ms": 120,
+    "click_interval_ms": 800,
+    "extra_scripts_interval_ms": 40000,
+    "smartlink_interval_ms": 25000
+  },
+  "browser": {
+    "instances": 1,
+    "headless": false,
+    "width": 1400,
+    "height": 900
+  }
+}
